@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import url('https://db.onlinewebfonts.com/c/1b99743bcb88cf33f2f85350f2023ac3?family=Champion-HTF-Bantamweight');
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+body {
+    background-color: #111111;
+    color: white;
+}
