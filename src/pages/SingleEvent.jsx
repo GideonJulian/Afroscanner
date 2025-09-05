@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
-
 import {
   CalendarDays,
   Clock,
@@ -20,6 +19,7 @@ const SingleEvent = () => {
   const [purchases, setPurchases] = useState([]);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedResult, setScannedResult] = useState(null);
+  const [scanStatus, setScanStatus] = useState(""); // feedback text
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -50,16 +50,12 @@ const SingleEvent = () => {
     fetchTickets();
     fetchPurchases();
   }, [id]);
+
   const totalCapacity = tickets.reduce(
     (total, t) => total + (t.quantity_available || 0),
     0
   );
 
-  // if purchase objects have a `quantity` field:
-  const totalScanned = purchases.reduce(
-    (total, p) => total + (p.quantity || 0),
-    0
-  );
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
       {/* Header */}
@@ -71,7 +67,6 @@ const SingleEvent = () => {
         />
       </div>
       <div className="ml-4">
-        {" "}
         {!event ? (
           <div className="flex-1 flex items-center justify-center text-gray-400">
             Loading...
@@ -102,7 +97,8 @@ const SingleEvent = () => {
             </ul>
           </>
         )}
-      </div>{" "}
+      </div>
+
       {/* Total Scanned */}
       <div className="mt-10 px-5 text-center">
         <p className="uppercase text-lg font-bold tracking-wide text-white">
@@ -111,16 +107,8 @@ const SingleEvent = () => {
         <p className="text-2xl font-bold text-[#E55934] mt-1">
           / {tickets.reduce((total, t) => total + t.quantity_available, 0)}
         </p>
-
-        {/* <div className="w-full h-2 rounded-full bg-gray-700 mt-2">
-          <div
-            className="h-2 rounded-full bg-[#E55934]"
-            style={{
-              width: `${(event.totalScanned / event.totalCapacity) * 100}%`,
-            }}
-          />
-        </div> */}
       </div>
+
       {/* Ticket Types */}
       <div className="mt-6 px-5">
         <p className="uppercase text-xs tracking-wide text-gray-400 mb-3">
@@ -130,8 +118,8 @@ const SingleEvent = () => {
         <div className="flex flex-wrap gap-3">
           {tickets.map((ticket) => {
             const scannedForThisType = purchases
-              .filter((p) => p.ticket === ticket.id)
-              .reduce((sum, p) => sum + (p.quantity || 0), 0);
+              .filter((p) => p.ticket === ticket.id && p.is_used)
+              .length; // count used tickets
 
             return (
               <div key={ticket.id} className="flex flex-col">
@@ -147,18 +135,49 @@ const SingleEvent = () => {
           })}
         </div>
       </div>
+
       {isScanning && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
           <div className="w-[300px] h-[300px] bg-gray-900 rounded-lg overflow-hidden">
             <BarcodeScannerComponent
               width={300}
               height={300}
-              // ⬇️ this is the handler
-              onUpdate={(err, result) => {
+              onUpdate={async (err, result) => {
                 if (result) {
-                  setScannedResult(result.text); // store the scanned value
-                  setIsScanning(false); // close scanner modal
-                  // TODO: call your /events/ticket-purchases/ API to mark as scanned
+                  setScannedResult(result.text);
+                  setIsScanning(false);
+
+                  try {
+                    // GET that ticket-purchase
+                    const res = await fetch(
+                      `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/${result.text}/`
+                    );
+                    if (!res.ok) throw new Error("Not found");
+                    const purchase = await res.json();
+
+                    if (purchase.is_used) {
+                      setScanStatus("❌ Ticket already used");
+                    } else {
+                      // PATCH to mark used
+                      await fetch(
+                        `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/${purchase.id}/`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ is_used: true }),
+                        }
+                      );
+                      setScanStatus("✅ Ticket marked as used");
+                      // refresh local list
+                      const refreshed = await fetch(
+                        `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/`
+                      );
+                      setPurchases(await refreshed.json());
+                    }
+                  } catch (e) {
+                    console.error(e);
+                    setScanStatus("⚠️ Ticket not found");
+                  }
                 }
               }}
             />
@@ -171,20 +190,24 @@ const SingleEvent = () => {
           </button>
         </div>
       )}
+
+      {scanStatus && (
+        <p className="mt-4 text-center text-sm text-white">{scanStatus}</p>
+      )}
+
       {/* Continue Button */}
       <div className="mt-6 px-5">
-        <div className="relative     w-full inline-block mt-10">
+        <div className="relative w-full inline-block mt-10">
           <span className="absolute inset-0 bg-black rounded-lg translate-x-2 translate-y-2 border-2 "></span>
           <button
             onClick={() => setIsScanning(true)}
             className="relative text-sm font-semibold uppercase cursor-pointer px-6 py-3 w-full bg-white text-black rounded-lg border-2 border-black shadow-md scale-102 hover:scale-105 transition-all duration-300"
-            //   style={{ width: `${width}px` }}
           >
             CONTINUE SCANNING
           </button>
         </div>
       </div>
-      {/* Push content above nav */}
+
       <div className="flex-1" />
       {/* BottomNav */}
     </div>
