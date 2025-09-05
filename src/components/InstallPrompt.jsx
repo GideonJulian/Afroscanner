@@ -1,32 +1,55 @@
 import { useEffect, useState } from "react";
 
-export default function InstallPrompt() {
+const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
+    const handler = (e) => {
+      e.preventDefault();          // prevent Chrome mini-bar
       setDeferredPrompt(e);
-    });
+      setShow(true);               // open modal
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response: ${outcome}`);
-      setDeferredPrompt(null);
-    }
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log("User response:", outcome);
+    setDeferredPrompt(null);
+    setShow(false);
   };
 
+  const handleClose = () => setShow(false);
+
+  if (!show) return null;
+
   return (
-    deferredPrompt && (
-      <button
-        onClick={handleInstall}
-        className="fixed bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-[#E55934] text-white rounded-lg shadow"
-      >
-        Install App
-      </button>
-    )
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
+      <div className="bg-white w-80 rounded-2xl shadow-xl p-6 text-center animate-fadeIn">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+          Install AfroScanner
+        </h2>
+        <p className="text-gray-600 text-sm mb-4">
+          Install this app on your device for quick access and offline use.
+          Add it to your home screen just like a native app.
+        </p>
+
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleInstall}
+            className="bg-[#E55934] text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Install App
+          </button>
+        
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default InstallPrompt;
