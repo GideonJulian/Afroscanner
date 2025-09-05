@@ -21,6 +21,8 @@ const SingleEvent = () => {
   const [scannedResult, setScannedResult] = useState(null);
   const [scanStatus, setScanStatus] = useState(""); // feedback text
 
+  const [progress, setProgress] = useState(0); // 0 → 100
+
   useEffect(() => {
     const fetchEvents = async () => {
       const res = await fetch(
@@ -50,7 +52,22 @@ const SingleEvent = () => {
     fetchTickets();
     fetchPurchases();
   }, [id]);
+  useEffect(() => {
+    if (!scanStatus) return;
+    setProgress(100);
+    const step = 100 / (3000 / 50);
+    const interval = setInterval(() => {
+      setProgress((prev) => Math.max(prev - step, 0));
+    }, 50);
 
+    // hide after 3s
+    const hide = setTimeout(() => setScanStatus(""), 3000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(hide);
+    };
+  }, [scanStatus]);
   const totalCapacity = tickets.reduce(
     (total, t) => total + (t.quantity_available || 0),
     0
@@ -106,7 +123,6 @@ const SingleEvent = () => {
         </p>
         {/* Total Scanned */}
         <div className="mt-10 px-5 text-center">
-        
           <p className="text-2xl font-bold text-[#E55934] mt-1">
             {
               // how many purchases are marked as used
@@ -179,7 +195,8 @@ const SingleEvent = () => {
                     const response = await res.json();
                     // you can check response if backend tells you status (used, valid, etc.)
                     setScanStatus("✅ Ticket validated and marked as used");
-
+                    setProgress(100); // full bar
+                    setTimeout(() => setScanStatus(""), 3000);
                     // refresh the list so counters update
                     const refreshed = await fetch(
                       "https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/"
@@ -203,7 +220,17 @@ const SingleEvent = () => {
       )}
 
       {scanStatus && (
-        <p className="mt-4 text-center text-sm text-white">{scanStatus}</p>
+        <div className="mt-4 text-center">
+          <p className="text-sm text-white">{scanStatus}</p>
+
+          {/* shrinking progress bar */}
+          <div className="relative w-40 h-1 bg-gray-700 mx-auto mt-2 rounded">
+            <div
+              className="absolute top-0 left-0 h-full bg-[#E55934] rounded"
+              style={{ width: `${progress}%`, transition: "width 50ms linear" }}
+            />
+          </div>
+        </div>
       )}
 
       {/* Continue Button */}
