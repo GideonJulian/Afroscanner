@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import BarcodeScannerComponent from "react-qr-barcode-scanner";
+
 import {
   CalendarDays,
   Clock,
@@ -16,6 +18,9 @@ const SingleEvent = () => {
   const [event, setEventData] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [purchases, setPurchases] = useState([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannedResult, setScannedResult] = useState(null);
+
   useEffect(() => {
     const fetchEvents = async () => {
       const res = await fetch(
@@ -142,12 +147,36 @@ const SingleEvent = () => {
           })}
         </div>
       </div>
+      {isScanning && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="w-[300px] h-[300px] bg-gray-900 rounded-lg overflow-hidden">
+            <BarcodeScannerComponent
+              width={300}
+              height={300}
+              // ⬇️ this is the handler
+              onUpdate={(err, result) => {
+                if (result) {
+                  setScannedResult(result.text); // store the scanned value
+                  setIsScanning(false); // close scanner modal
+                  // TODO: call your /events/ticket-purchases/ API to mark as scanned
+                }
+              }}
+            />
+          </div>
+          <button
+            className="absolute top-4 right-4 bg-white text-black px-3 py-1 rounded"
+            onClick={() => setIsScanning(false)}
+          >
+            Close
+          </button>
+        </div>
+      )}
       {/* Continue Button */}
       <div className="mt-6 px-5">
         <div className="relative     w-full inline-block mt-10">
           <span className="absolute inset-0 bg-black rounded-lg translate-x-2 translate-y-2 border-2 "></span>
           <button
-            //   onClick={() => navigate()}
+            onClick={() => setIsScanning(true)}
             className="relative text-sm font-semibold uppercase cursor-pointer px-6 py-3 w-full bg-white text-black rounded-lg border-2 border-black shadow-md scale-102 hover:scale-105 transition-all duration-300"
             //   style={{ width: `${width}px` }}
           >
