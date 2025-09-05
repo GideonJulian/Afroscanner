@@ -21,7 +21,7 @@ const Events = () => {
       const res = await fetch("https://afrophuket-backend-gr4j.onrender.com/events/", {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Token ${token}`,
+        //   Authorization: `Token ${token}`,
         },
       });
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
