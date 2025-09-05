@@ -11,7 +11,7 @@ const Layouts = () => {
              <BottomNav />
         </div>
         <div>
-          <InstallPrompt />
+           <InstallPrompt />
         </div>
     </div>
   )

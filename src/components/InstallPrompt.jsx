@@ -23,8 +23,6 @@ const InstallPrompt = () => {
     setShow(false);
   };
 
-  const handleClose = () => setShow(false);
-
   if (!show) return null;
 
   return (
