@@ -15,41 +15,46 @@ const SingleEvent = () => {
   const navigate = useNavigate();
   const [event, setEventData] = useState(null);
   const [tickets, setTickets] = useState([]);
+  const [purchases, setPurchases] = useState([]);
   useEffect(() => {
     const fetchEvents = async () => {
-      try {
-        const res = await fetch(
-          `https://afrophuket-backend-gr4j.onrender.com/events/${id}/`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!res.ok) throw new Error("Failed to fetch event");
-        const data = await res.json();
-        setEventData(data);
-      } catch (err) {
-        console.log(err);
-      }
+      const res = await fetch(
+        `https://afrophuket-backend-gr4j.onrender.com/events/${id}/`
+      );
+      if (!res.ok) throw new Error("Failed to fetch event");
+      setEventData(await res.json());
     };
+
     const fetchTickets = async () => {
-      try {
-        const res = await fetch(
-          `https://afrophuket-backend-gr4j.onrender.com/events/tickets/`, // if your API allows filtering by event
-          { headers: { "Content-Type": "application/json" } }
-        );
-        if (!res.ok) throw new Error("Failed to fetch tickets");
-        const data = await res.json();
-        setTickets(data);
-      } catch (err) {
-        console.error(err);
-      }
+      const res = await fetch(
+        `https://afrophuket-backend-gr4j.onrender.com/events/tickets/`
+      );
+      if (!res.ok) throw new Error("Failed to fetch tickets");
+      setTickets(await res.json());
     };
-    fetchTickets();
+
+    const fetchPurchases = async () => {
+      const res = await fetch(
+        `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/`
+      );
+      if (!res.ok) throw new Error("Failed to fetch purchases");
+      setPurchases(await res.json());
+    };
+
     fetchEvents();
+    fetchTickets();
+    fetchPurchases();
   }, [id]);
+  const totalCapacity = tickets.reduce(
+    (total, t) => total + (t.quantity_available || 0),
+    0
+  );
+
+  // if purchase objects have a `quantity` field:
+  const totalScanned = purchases.reduce(
+    (total, p) => total + (p.quantity || 0),
+    0
+  );
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
       {/* Header */}
@@ -118,22 +123,23 @@ const SingleEvent = () => {
         </p>
 
         <div className="flex flex-wrap gap-3">
-          {tickets.length > 0 ? (
-            tickets.map((ticket) => (
-              <div className="flex flex-col">
-                <div
-                  key={ticket.id}
-                  className="bg-[#FFF2ED] rounded-full px-4 py-2 flex items-center gap-2 text-[#E55934] font-semibold"
-                >
+          {tickets.map((ticket) => {
+            const scannedForThisType = purchases
+              .filter((p) => p.ticket === ticket.id)
+              .reduce((sum, p) => sum + (p.quantity || 0), 0);
+
+            return (
+              <div key={ticket.id} className="flex flex-col">
+                <div className="bg-[#FFF2ED] rounded-full px-4 py-2 flex items-center gap-2 text-[#E55934] font-semibold">
                   <Ticket size={16} />
-                  <div>{ticket.name}</div>
+                  <span>{ticket.name}</span>
                 </div>
-                <div className="font-bold text-lg mt-3">/ {ticket.quantity_available} </div>
+                <div className="font-bold text-lg mt-3">
+                  {scannedForThisType} / {ticket.quantity_available}
+                </div>
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500 text-sm">No tickets for this event</p>
-          )}
+            );
+          })}
         </div>
       </div>
       {/* Continue Button */}
