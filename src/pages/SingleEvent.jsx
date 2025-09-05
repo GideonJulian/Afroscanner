@@ -104,9 +104,21 @@ const SingleEvent = () => {
         <p className="uppercase text-lg font-bold tracking-wide text-white">
           Total Scanned
         </p>
-        <p className="text-2xl font-bold text-[#E55934] mt-1">
-          / {tickets.reduce((total, t) => total + t.quantity_available, 0)}
-        </p>
+        {/* Total Scanned */}
+        <div className="mt-10 px-5 text-center">
+        
+          <p className="text-2xl font-bold text-[#E55934] mt-1">
+            {
+              // how many purchases are marked as used
+              purchases.filter((p) => p.is_used).length
+            }
+            {" / "}
+            {
+              // total number of tickets
+              tickets.reduce((total, t) => total + t.quantity_available, 0)
+            }
+          </p>
+        </div>
       </div>
 
       {/* Ticket Types */}
@@ -117,9 +129,9 @@ const SingleEvent = () => {
 
         <div className="flex flex-wrap gap-3">
           {tickets.map((ticket) => {
-            const scannedForThisType = purchases
-              .filter((p) => p.ticket === ticket.id && p.is_used)
-              .length; // count used tickets
+            const scannedForThisType = purchases.filter(
+              (p) => p.ticket === ticket.id && p.is_used
+            ).length; // count used tickets
 
             return (
               <div key={ticket.id} className="flex flex-col">
@@ -148,35 +160,34 @@ const SingleEvent = () => {
                   setIsScanning(false);
 
                   try {
-                    // GET that ticket-purchase
+                    // POST the token directly to your validation endpoint
                     const res = await fetch(
-                      `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/${result.text}/`
+                      `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchase/validate/`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ qr_code_token: result.text }),
+                      }
                     );
-                    if (!res.ok) throw new Error("Not found");
-                    const purchase = await res.json();
 
-                    if (purchase.is_used) {
-                      setScanStatus("❌ Ticket already used");
-                    } else {
-                      // PATCH to mark used
-                      await fetch(
-                        `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/${purchase.id}/`,
-                        {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ is_used: true }),
-                        }
-                      );
-                      setScanStatus("✅ Ticket marked as used");
-                      // refresh local list
-                      const refreshed = await fetch(
-                        `https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/`
-                      );
-                      setPurchases(await refreshed.json());
+                    if (!res.ok) {
+                      // backend will probably send 400/404 if invalid
+                      setScanStatus("⚠️ Invalid or already used ticket");
+                      return;
                     }
+
+                    const response = await res.json();
+                    // you can check response if backend tells you status (used, valid, etc.)
+                    setScanStatus("✅ Ticket validated and marked as used");
+
+                    // refresh the list so counters update
+                    const refreshed = await fetch(
+                      "https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/"
+                    );
+                    setPurchases(await refreshed.json());
                   } catch (e) {
                     console.error(e);
-                    setScanStatus("⚠️ Ticket not found");
+                    setScanStatus("⚠️ Network or server error");
                   }
                 }
               }}
