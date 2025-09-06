@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 import { Clock, MapPin, ArrowLeft, Ticket, Calendar } from "lucide-react";
-
 const SingleEvent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,8 +12,8 @@ const SingleEvent = () => {
 
   const [isScanning, setIsScanning] = useState(false);
   const [scannedResult, setScannedResult] = useState(null);
-  const [scanStatus, setScanStatus] = useState(""); // ✅ / ⚠️ text
-  const [progress, setProgress] = useState(0); // progress bar %
+  const [scanStatus, setScanStatus] = useState("");
+  const [progress, setProgress] = useState(0);
 
   /* ------------ FETCH DATA ----------------- */
   useEffect(() => {
@@ -32,7 +31,8 @@ const SingleEvent = () => {
       );
       if (!r.ok) throw new Error("Tickets load failed");
       const all = await r.json();
-      setTickets(all.filter((t) => t.event === Number(id))); // only this event
+      // 🔑 only this event’s tickets
+      setTickets(all.filter((t) => t.event === Number(id)));
     };
 
     const fetchPurchases = async () => {
@@ -40,7 +40,7 @@ const SingleEvent = () => {
         "https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/"
       );
       if (!r.ok) throw new Error("Purchases load failed");
-      setPurchases(await r.json()); // keep all, filter in render
+      setPurchases(await r.json());
     };
 
     fetchEvent();
@@ -52,7 +52,7 @@ const SingleEvent = () => {
   useEffect(() => {
     if (!scanStatus) return;
     setProgress(100);
-    const step = 100 / (3000 / 50); // 3s shrink
+    const step = 100 / (3000 / 50);
     const interval = setInterval(
       () => setProgress((p) => Math.max(p - step, 0)),
       50
@@ -76,6 +76,14 @@ const SingleEvent = () => {
     (sum, t) => sum + (t.quantity_available || 0),
     0
   );
+
+  // 💰 total price of scanned tickets
+  const totalScannedAmount = filteredPurchases
+    .filter((p) => p.is_used)
+    .reduce((sum, p) => {
+      const t = tickets.find((t) => t.id === p.ticket);
+      return t ? sum + Number(t.price || 0) : sum;
+    }, 0);
 
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
@@ -133,12 +141,12 @@ const SingleEvent = () => {
       <div className="mt-6 px-5">
         <p className="uppercase text-xs tracking-wide text-gray-400 mb-3">
           Ticket Types
-        </p>{" "}
-        {tickets.length === 0 ? (
+        </p>
+        {tickets.length === 0 && (
           <p className="uppercase text-xs tracking-wide text-center mt-4 text-white mb-3">
-            No ticket available for this event 
+            No ticket available for this event
           </p>
-        ) : null}
+        )}
         <div className="flex flex-wrap gap-4">
           {tickets.map((ticket) => {
             const used = filteredPurchases.filter(
@@ -179,14 +187,11 @@ const SingleEvent = () => {
                         body: JSON.stringify({ qr_code_token: result.text }),
                       }
                     );
-
                     if (!res.ok) {
                       setScanStatus("⚠️ Invalid or already used");
                       return;
                     }
-
                     setScanStatus("✅ Ticket validated");
-                    // refresh purchases
                     const r = await fetch(
                       "https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/"
                     );
@@ -208,7 +213,7 @@ const SingleEvent = () => {
         </div>
       )}
 
-      {/* STATUS + SHRINKING BAR */}
+      {/* STATUS */}
       {scanStatus && (
         <div className="mt-4 text-center">
           <p className="text-sm">{scanStatus}</p>
@@ -220,7 +225,15 @@ const SingleEvent = () => {
           </div>
         </div>
       )}
-
+      {/* 💰 TOTAL AMOUNT OF SCANNED */}
+      <div className="mt-2 px-5 text-center">
+        <p className="uppercase text-xs tracking-wide text-gray-400">
+          Scanned Ticket Value
+        </p>
+        <p className="text-xl font-bold text-green-400 mt-1">
+          ₦{totalScannedAmount.toLocaleString()}
+        </p>
+      </div>
       {/* BUTTON */}
       <div className="mt-6 px-5">
         <div className="relative w-full inline-block mt-10">
@@ -233,8 +246,6 @@ const SingleEvent = () => {
           </button>
         </div>
       </div>
-
-      <div className="flex-1" />
     </div>
   );
 };
