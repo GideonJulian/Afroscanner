@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),         // tailwind plugin
     VitePWA({
+       registerType: "autoUpdate",
       manifest: {
         name: "AfroScanner",
         short_name: "AfroScan",
@@ -34,4 +35,7 @@ export default defineConfig({
     })
 
   ],
+    devOptions: {
+    enabled: false  
+  }
 });
