@@ -20,15 +20,18 @@ const PopupNotification = ({ type, message, show, onClose }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -30 }}
           transition={{ duration: 0.3 }}
-          className={`fixed top-10 right-6 px-7 py-5 rounded-xl shadow-lg flex items-center gap-3 z-50
+          className={`fixed top-4 right-4 sm:top-10 sm:right-6 
+            max-w-[90%] sm:max-w-sm w-auto 
+            px-5 sm:px-7 py-4 sm:py-5 rounded-xl shadow-lg 
+            flex items-center gap-2 sm:gap-3 z-50
             ${type === "success" ? "bg-green-600" : "bg-red-600"} text-white`}
         >
           {type === "success" ? (
-            <CheckCircle className="w-6 h-6" />
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
           ) : (
-            <XCircle className="w-6 h-6" />
+            <XCircle className="w-5 h-5 sm:w-6 sm:h-6" />
           )}
-          <p className="text-sm font-medium">{message}</p>
+          <p className="text-xs sm:text-sm font-medium">{message}</p>
         </motion.div>
       )}
     </AnimatePresence>

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 import { Clock, MapPin, ArrowLeft, Ticket, Calendar } from "lucide-react";
+import PopupNotification from "../components/PopupNotification";
 const SingleEvent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -202,8 +203,8 @@ const SingleEvent = () => {
                     }
                     setPopup({
                       show: true,
-                      type: "error",
-                      message: " Ticket Scanned",
+                      type: "success",
+                      message: "Ticket Scanned",
                     });
                     const r = await fetch(
                       "https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/"
@@ -231,24 +232,18 @@ const SingleEvent = () => {
       )}
 
       {/* STATUS */}
-      {scanStatus && (
-        <div className="mt-4 text-center">
-          <div>
-            <PopupNotification
-              type={popup.type}
-              message={popup.message}
-              show={popup.show}
-              onClose={() => setPopup({ ...popup, show: false })}
-            />
-          </div>
-          <div className="relative w-40 h-1 bg-gray-700 mx-auto mt-2 rounded">
-            <div
-              className="absolute top-0 left-0 h-full bg-[#E55934] rounded"
-              style={{ width: `${progress}%`, transition: "width 50ms linear" }}
-            />
-          </div>
+
+      <div className="mt-4 text-center">
+        <div>
+          <PopupNotification
+            type={popup.type}
+            message={popup.message}
+            show={popup.show}
+            onClose={() => setPopup({ ...popup, show: false })}
+          />
         </div>
-      )}
+      </div>
+
       {/* 💰 TOTAL AMOUNT OF SCANNED */}
       <div className="mt-2 px-5 text-center">
         <p className="uppercase text-xs tracking-wide text-gray-400">
