@@ -14,6 +14,11 @@ const SingleEvent = () => {
   const [scannedResult, setScannedResult] = useState(null);
   const [scanStatus, setScanStatus] = useState("");
   const [progress, setProgress] = useState(0);
+  const [popup, setPopup] = useState({
+    show: false,
+    type: "success",
+    message: "",
+  });
 
   /* ------------ FETCH DATA ----------------- */
   useEffect(() => {
@@ -188,17 +193,29 @@ const SingleEvent = () => {
                       }
                     );
                     if (!res.ok) {
-                      setScanStatus("⚠️ Invalid or already used");
+                      setPopup({
+                        show: true,
+                        type: "error",
+                        message: "Invalid or Used Ticket",
+                      });
                       return;
                     }
-                    setScanStatus("✅ Ticket validated");
+                    setPopup({
+                      show: true,
+                      type: "error",
+                      message: " Ticket Scanned",
+                    });
                     const r = await fetch(
                       "https://afrophuket-backend-gr4j.onrender.com/events/ticket-purchases/"
                     );
                     setPurchases(await r.json());
                   } catch (e) {
                     console.error(e);
-                    setScanStatus("⚠️ Network or server error");
+                    setPopup({
+                      show: true,
+                      type: "error",
+                      message: "Network or server error",
+                    });
                   }
                 }
               }}
@@ -216,7 +233,14 @@ const SingleEvent = () => {
       {/* STATUS */}
       {scanStatus && (
         <div className="mt-4 text-center">
-          <p className="text-sm">{scanStatus}</p>
+          <div>
+            <PopupNotification
+              type={popup.type}
+              message={popup.message}
+              show={popup.show}
+              onClose={() => setPopup({ ...popup, show: false })}
+            />
+          </div>
           <div className="relative w-40 h-1 bg-gray-700 mx-auto mt-2 rounded">
             <div
               className="absolute top-0 left-0 h-full bg-[#E55934] rounded"
