@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
 import loginImg from "../assets/images/login.png";
-
+import logo from '../assets/images/afrologo.png'
 const AuthPage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -99,7 +99,7 @@ const AuthPage = () => {
       {/* Left Section */}
       <div className="w-full md:w-1/2 text-white flex flex-col justify-center px-10">
         <div className="mb-10">
-          <img src="/afrologo.png" alt="Logo" className="h-12" />
+          <img src={logo} alt="Logo" className="h-12" />
         </div>
 
         <h1 className="text-5xl font-bold bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">
