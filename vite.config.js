@@ -4,11 +4,12 @@ import tailwindcss from "@tailwindcss/vite";   // keep Tailwind
 import { VitePWA } from "vite-plugin-pwa";     // add PWA
 
 export default defineConfig({
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),         // tailwind plugin
     VitePWA({
-       registerType: "autoUpdate",
+      registerType: "autoUpdate",
       manifest: {
         name: "AfroScanner",
         short_name: "AfroScan",
@@ -35,7 +36,7 @@ export default defineConfig({
     })
 
   ],
-    devOptions: {
-    enabled: false  
+  devOptions: {
+    enabled: false
   }
 });
