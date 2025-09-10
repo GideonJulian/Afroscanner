@@ -26,12 +26,12 @@ const BottomNav = () => {
         fixed bottom-0 left-0 right-0
         flex justify-around gap-10
         bg-black/80 backdrop-blur-md
-         shadow-lg
+        shadow-lg
         z-20
       "
     >
       {navItem("/", Home, "Home")}
-      {navItem("", ScanLine, "Scan")}
+      {navItem("/scan", ScanLine, "Scan")} 
     </div>
   );
 };

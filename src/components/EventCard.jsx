@@ -9,7 +9,7 @@ const EventCard = ({ event, handleDelete }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`scan/${event.id}`);
+    navigate(`ticket/${event.id}`);
   };
 
   return (
