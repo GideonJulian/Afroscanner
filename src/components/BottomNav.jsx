@@ -31,7 +31,7 @@ const BottomNav = () => {
       "
     >
       {navItem("/", Home, "Home")}
-      {navItem("/scan", ScanLine, "Scan")}
+      {navItem("", ScanLine, "Scan")}
     </div>
   );
 };
