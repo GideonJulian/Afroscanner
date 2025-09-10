@@ -24,7 +24,7 @@ const Events = () => {
         //   Authorization: `Token ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+      if (!res.ok) throw new Error(`HTTP error  ! Status: ${res.status}`);
       const data = await res.json();
       if (Array.isArray(data)) setEventData(data);
       else console.error("Expected array, got:", data);

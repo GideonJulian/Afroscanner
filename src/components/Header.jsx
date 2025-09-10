@@ -63,10 +63,10 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, buttonText, route }) => {
         <h1 className="text-[#E55934] text-sm sm:text-base md:text-lg">
           All {getHeaderTitle()}
         </h1>
-        <div className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+        {/* <div className="flex items-center gap-2 sm:gap-3 cursor-pointer">
           <Funnel size={18} />
           <h1 className="text-sm sm:text-base">Filter</h1>
-        </div>
+        </div> */}
       </div>
     </div>
   );
